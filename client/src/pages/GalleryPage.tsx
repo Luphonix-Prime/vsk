@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Filter, Image, Video } from "lucide-react";
 
 // Mock data - TODO: replace with real data from JSON files
-import culturalEventImage from '@assets/generated_images/Cultural_event_photo_4cfc2141.png';
+import culturalEvent from "@assets/generated_images/Cultural_event_photo_4cfc2141.png"
 import danceImage from '@assets/generated_images/Traditional_dance_performance_44f13591.png';
 import communityImage from '@assets/generated_images/Community_service_event_7d7cb162.png';
 
@@ -23,8 +23,8 @@ const mockGalleryData = [
   {
     id: "2",
     type: "image" as const,
-    src: culturalEventImage,
-    thumbnail: culturalEventImage,
+    src: culturalEvent,
+    thumbnail: culturalEvent,
     title: "Cultural Heritage Celebration",
     description: "Community gathering celebrating our rich cultural heritage",
     category: "Events"
@@ -50,8 +50,8 @@ const mockGalleryData = [
   {
     id: "5",
     type: "image" as const,
-    src: culturalEventImage,
-    thumbnail: culturalEventImage,
+    src: culturalEvent,
+    thumbnail: culturalEvent,
     title: "Youth Program Graduation",
     description: "Celebrating the achievements of our youth education program graduates",
     category: "Programs"
