@@ -1,225 +1,194 @@
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import HeroSection from "@/components/HeroSection";
-import NewsCard from "@/components/NewsCard";
-import GalleryCard from "@/components/GalleryCard";
-import PublicationCard from "@/components/PublicationCard";
-import ImportantDayCard from "@/components/ImportantDayCard";
-import { ArrowRight } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Users, BookOpen, Star } from "lucide-react";
 import { Link } from "wouter";
-
-// Mock data - TODO: replace with real data from JSON files
-import culturalEventImage from '@assets/generated_images/Cultural_event_photo_4cfc2141.png';
-import danceImage from '@assets/generated_images/Traditional_dance_performance_44f13591.png';
-import communityImage from '@assets/generated_images/Community_service_event_7d7cb162.png';
-
-const mockNews = [
-  {
-    id: "1",
-    title: "Annual Cultural Festival 2024 Celebrates Rich Heritage",
-    excerpt: "Join us for our biggest cultural celebration of the year featuring traditional performances, authentic cuisine, and community activities.",
-    image: culturalEventImage,
-    date: "March 15, 2024",
-    author: "VSK Team",
-    category: "Events"
-  },
-  {
-    id: "2",
-    title: "Youth Cultural Education Program Launched",
-    excerpt: "New initiative to teach traditional arts and cultural values to young community members through interactive workshops.",
-    image: danceImage,
-    date: "March 10, 2024",
-    author: "Education Team",
-    category: "Programs"
-  },
-  {
-    id: "3",
-    title: "Community Service Drive: Building Stronger Bonds",
-    excerpt: "Successful community service initiative brings together families to support local causes and strengthen community ties.",
-    image: communityImage,
-    date: "March 5, 2024",
-    author: "Community Team",
-    category: "Community"
-  }
-];
-
-const mockGallery = [
-  {
-    id: "1",
-    type: "image" as const,
-    src: danceImage,
-    thumbnail: danceImage,
-    title: "Traditional Dance Performance",
-    description: "Annual cultural festival showcasing traditional Gujarati dance forms"
-  },
-  {
-    id: "2",
-    type: "image" as const,
-    src: culturalEventImage,
-    thumbnail: culturalEventImage,
-    title: "Cultural Heritage Celebration",
-    description: "Community gathering celebrating our rich cultural heritage"
-  },
-  {
-    id: "3",
-    type: "image" as const,
-    src: communityImage,
-    thumbnail: communityImage,
-    title: "Community Service Event",
-    description: "Volunteers working together for community development"
-  }
-];
-
-const mockPublications = [
-  {
-    id: "1",
-    title: "Cultural Heritage Preservation Guidelines",
-    description: "Comprehensive guide on preserving and promoting Gujarati cultural traditions in modern society.",
-    publishDate: "February 2024",
-    fileSize: "2.3 MB",
-    downloadUrl: "#",
-    category: "Guidelines"
-  },
-  {
-    id: "2",
-    title: "Community Development Handbook",
-    description: "Practical strategies for community engagement and development initiatives.",
-    publishDate: "January 2024",
-    fileSize: "1.8 MB",
-    downloadUrl: "#",
-    category: "Handbook"
-  }
-];
-
-const mockImportantDays = [
-  {
-    id: "1",
-    title: "Navratri Celebration",
-    date: "October 15, 2024",
-    time: "6:00 PM",
-    description: "Join us for a vibrant celebration of Navratri with traditional dance, music, and authentic Gujarati cuisine.",
-    category: "Festival",
-    isUpcoming: true
-  },
-  {
-    id: "2",
-    title: "Diwali Community Gathering",
-    date: "November 1, 2024",
-    time: "7:00 PM",
-    description: "Community celebration of the festival of lights with traditional ceremonies and festivities.",
-    category: "Festival",
-    isUpcoming: true
-  }
-];
+import HeroSection from "@/components/HeroSection";
+import type { BlogPost } from "@shared/schema";
 
 export default function HomePage() {
+  // Fetch published blog posts
+  const { data: posts, isLoading } = useQuery<BlogPost[]>({
+    queryKey: ["/api/posts"],
+    staleTime: 30 * 1000, // 30 seconds
+  });
+
+  const featuredPosts = posts?.filter(post => post.featured) || [];
+  const recentPosts = posts?.slice(0, 6) || [];
+
   return (
     <div className="min-h-screen">
       <HeroSection />
-      
-      {/* Latest News Section */}
-      <section className="py-16 bg-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4" data-testid="section-title-news">Latest News</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Stay updated with our latest events, programs, and community initiatives
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-            {mockNews.map((news) => (
-              <NewsCard key={news.id} {...news} />
-            ))}
-          </div>
-          
-          <div className="text-center">
-            <Link href="/news">
-              <Button size="lg" data-testid="button-view-all-news">
-                View All News
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {/* Gallery Preview Section */}
+      {/* Featured Posts Section */}
+      {featuredPosts.length > 0 && (
+        <section className="py-16 bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4">Featured News</h2>
+              <p className="text-muted-foreground text-lg">
+                Stay updated with our latest announcements and activities
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredPosts.map((post) => (
+                <Card key={post.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex justify-between items-start mb-2">
+                      <Badge variant="secondary" className="bg-primary/10 text-primary">
+                        Featured
+                      </Badge>
+                      <time className="text-sm text-muted-foreground">
+                        {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Draft'}
+                      </time>
+                    </div>
+                    <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                    <CardDescription className="line-clamp-3">
+                      {post.excerpt || post.content.substring(0, 150) + '...'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href={`/news/${post.slug}`}>Read More</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Recent News Section */}
       <section className="py-16 bg-muted/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4" data-testid="section-title-gallery">Gallery</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Explore moments from our cultural events and community activities
+            <h2 className="text-3xl font-bold mb-4">Latest News & Updates</h2>
+            <p className="text-muted-foreground text-lg">
+              Discover what's happening in our community
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-            {mockGallery.map((item) => (
-              <GalleryCard key={item.id} item={item} />
-            ))}
-          </div>
-          
-          <div className="text-center">
-            <Link href="/gallery">
-              <Button size="lg" variant="secondary" data-testid="button-view-all-gallery">
-                View Full Gallery
-                <ArrowRight className="ml-2 h-4 w-4" />
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-4 text-muted-foreground">Loading latest news...</p>
+            </div>
+          ) : recentPosts.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {recentPosts.map((post) => (
+                <Card key={post.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex justify-between items-start mb-2">
+                      <time className="text-sm text-muted-foreground">
+                        {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Draft'}
+                      </time>
+                    </div>
+                    <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                    <CardDescription className="line-clamp-3">
+                      {post.excerpt || post.content.substring(0, 150) + '...'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href={`/news/${post.slug}`}>Read More</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No news yet</h3>
+              <p className="text-muted-foreground">
+                Check back soon for the latest updates and announcements.
+              </p>
+            </div>
+          )}
+
+          {recentPosts.length > 0 && (
+            <div className="text-center mt-12">
+              <Button asChild size="lg">
+                <Link href="/news">View All News</Link>
               </Button>
-            </Link>
-          </div>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* Publications Section */}
+      {/* Quick Links Section */}
       <section className="py-16 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4" data-testid="section-title-publications">Publications</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Access our educational resources and cultural preservation materials
+            <h2 className="text-3xl font-bold mb-4">Explore Our Community</h2>
+            <p className="text-muted-foreground text-lg">
+              Discover more about our activities, events, and resources
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            {mockPublications.map((publication) => (
-              <PublicationCard key={publication.id} {...publication} />
-            ))}
-          </div>
-          
-          <div className="text-center">
-            <Link href="/publications">
-              <Button size="lg" data-testid="button-view-all-publications">
-                View All Publications
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      {/* Important Days Section */}
-      <section className="py-16 bg-muted/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4" data-testid="section-title-important-days">Upcoming Events</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Mark your calendar for these important cultural celebrations and community events
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            {mockImportantDays.map((day) => (
-              <ImportantDayCard key={day.id} {...day} />
-            ))}
-          </div>
-          
-          <div className="text-center">
-            <Link href="/important-days">
-              <Button size="lg" variant="secondary" data-testid="button-view-all-events">
-                View All Events
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <Calendar className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Important Days</CardTitle>
+                <CardDescription>
+                  Stay informed about upcoming cultural events and celebrations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/important-days">View Calendar</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <Users className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Gallery</CardTitle>
+                <CardDescription>
+                  Browse photos from our events and community activities
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/gallery">View Gallery</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <BookOpen className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>Publications</CardTitle>
+                <CardDescription>
+                  Access our newsletters, reports, and educational materials
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/publications">View Publications</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="text-center hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <Star className="h-12 w-12 text-primary mx-auto mb-4" />
+                <CardTitle>About Us</CardTitle>
+                <CardDescription>
+                  Learn more about our mission, values, and community impact
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/about">Learn More</Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>

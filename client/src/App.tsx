@@ -12,6 +12,7 @@ import GalleryPage from "@/pages/GalleryPage";
 import PublicationsPage from "@/pages/PublicationsPage";
 import ImportantDaysPage from "@/pages/ImportantDaysPage";
 import ContactPage from "@/pages/ContactPage";
+import AdminPage from "@/pages/AdminPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -20,10 +21,12 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/news" component={NewsPage} />
+        <Route path="/news/:slug" component={NewsPage} />
       <Route path="/gallery" component={GalleryPage} />
       <Route path="/publications" component={PublicationsPage} />
       <Route path="/important-days" component={ImportantDaysPage} />
       <Route path="/contact" component={ContactPage} />
+      <Route path="/admin" component={AdminPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

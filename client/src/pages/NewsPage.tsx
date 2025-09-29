@@ -1,187 +1,236 @@
-import { useState } from "react";
-import NewsCard from "@/components/NewsCard";
+
+import { useQuery } from "@tanstack/react-query";
+import { useRoute } from "wouter";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Calendar, Filter } from "lucide-react";
+import { CalendarDays, Clock, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
+import type { BlogPost } from "@shared/schema";
 
-// Mock data - TODO: replace with real data from JSON files
-import culturalEventImage from '@assets/generated_images/Cultural_event_photo_4cfc2141.png';
-import danceImage from '@assets/generated_images/Traditional_dance_performance_44f13591.png';
-import communityImage from '@assets/generated_images/Community_service_event_7d7cb162.png';
-
-const mockNewsData = [
-  {
-    id: "1",
-    title: "Annual Cultural Festival 2024 Celebrates Rich Heritage",
-    excerpt: "Join us for our biggest cultural celebration of the year featuring traditional performances, authentic cuisine, and community activities that bring together families from across Gujarat.",
-    image: culturalEventImage,
-    date: "March 15, 2024",
-    author: "VSK Team",
-    category: "Events"
-  },
-  {
-    id: "2",
-    title: "Youth Cultural Education Program Launched",
-    excerpt: "New initiative to teach traditional arts and cultural values to young community members through interactive workshops and mentorship programs.",
-    image: danceImage,
-    date: "March 10, 2024",
-    author: "Education Team",
-    category: "Programs"
-  },
-  {
-    id: "3",
-    title: "Community Service Drive: Building Stronger Bonds",
-    excerpt: "Successful community service initiative brings together families to support local causes and strengthen community ties through volunteer work.",
-    image: communityImage,
-    date: "March 5, 2024",
-    author: "Community Team",
-    category: "Community"
-  },
-  {
-    id: "4",
-    title: "Traditional Arts Workshop Series Begins",
-    excerpt: "Learn traditional Gujarati crafts, music, and dance in our comprehensive workshop series designed for all skill levels and ages.",
-    image: danceImage,
-    date: "February 28, 2024",
-    author: "Arts Team",
-    category: "Programs"
-  },
-  {
-    id: "5",
-    title: "Scholarship Program Announces New Recipients",
-    excerpt: "VSK Gujarat proudly announces the recipients of this year's educational scholarships, supporting academic excellence in our community.",
-    image: culturalEventImage,
-    date: "February 20, 2024",
-    author: "Education Team",
-    category: "Announcements"
-  },
-  {
-    id: "6",
-    title: "Monthly Community Gathering Success",
-    excerpt: "Another successful monthly gathering brings together community members for cultural discussions, networking, and shared meals.",
-    image: communityImage,
-    date: "February 15, 2024",
-    author: "Community Team",
-    category: "Community"
-  }
-];
-
-const categories = ["All", "Events", "Programs", "Community", "Announcements"];
-
-export default function NewsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [newsData] = useState(mockNewsData);
-
-  const filteredNews = newsData.filter(news => {
-    const matchesSearch = news.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         news.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || news.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+// Individual post page
+function NewsPostPage({ slug }: { slug: string }) {
+  const { data: post, isLoading, error } = useQuery<BlogPost>({
+    queryKey: [`/api/posts/slug/${slug}`],
+    staleTime: 30 * 1000,
   });
 
-  const handleNewsClick = (id: string) => {
-    console.log('News article clicked:', id);
-    // TODO: Navigate to news detail page
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen py-16 bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading article...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !post) {
+    return (
+      <div className="min-h-screen py-16 bg-background">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold text-muted-foreground mb-4">Article not found</h1>
+            <Button asChild>
+              <Link href="/news">Back to News</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen py-16 bg-background">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <Button asChild variant="outline">
+            <Link href="/news">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to News
+            </Link>
+          </Button>
+        </div>
+
+        <article className="prose prose-lg max-w-none">
+          <header className="mb-8 not-prose">
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4" />
+                <time>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('en-US', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                }) : 'Draft'}</time>
+              </div>
+              {post.featured && (
+                <Badge variant="secondary" className="bg-primary/10 text-primary">
+                  Featured
+                </Badge>
+              )}
+            </div>
+            <h1 className="text-4xl font-bold mb-4">{post.title}</h1>
+            {post.excerpt && (
+              <p className="text-xl text-muted-foreground leading-relaxed">
+                {post.excerpt}
+              </p>
+            )}
+          </header>
+
+          {post.coverImage && (
+            <div className="mb-8 not-prose">
+              <img 
+                src={post.coverImage} 
+                alt={post.title}
+                className="w-full h-64 object-cover rounded-lg"
+              />
+            </div>
+          )}
+
+          <div className="whitespace-pre-wrap">
+            {post.content}
+          </div>
+        </article>
+      </div>
+    </div>
+  );
+}
+
+// News listing page
+export default function NewsPage() {
+  const [match, params] = useRoute("/news/:slug");
+  
+  if (match && params?.slug) {
+    return <NewsPostPage slug={params.slug} />;
+  }
+
+  const { data: posts, isLoading } = useQuery<BlogPost[]>({
+    queryKey: ["/api/posts"],
+    staleTime: 30 * 1000,
+  });
+
+  const featuredPosts = posts?.filter(post => post.featured) || [];
+  const regularPosts = posts?.filter(post => !post.featured) || [];
 
   return (
     <div className="min-h-screen py-16 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4" data-testid="news-page-title">
-            Latest News & Updates
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Stay informed about our latest events, programs, and community initiatives
+          <h1 className="text-4xl font-bold mb-4">Latest News & Updates</h1>
+          <p className="text-muted-foreground text-lg">
+            Stay informed with the latest happenings in our community
           </p>
         </div>
 
-        {/* Search and Filter */}
-        <div className="mb-12">
-          <div className="flex flex-col md:flex-row gap-4 max-w-4xl mx-auto">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search news articles..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                data-testid="input-search-news"
-              />
-            </div>
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48" data-testid="select-category">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Results count */}
-        <div className="mb-8">
-          <p className="text-muted-foreground text-center">
-            {filteredNews.length === mockNewsData.length 
-              ? `Showing all ${filteredNews.length} articles`
-              : `Showing ${filteredNews.length} of ${mockNewsData.length} articles`
-            }
-          </p>
-        </div>
-
-        {/* News Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {filteredNews.map((news) => (
-            <NewsCard
-              key={news.id}
-              {...news}
-              onClick={() => handleNewsClick(news.id)}
-            />
-          ))}
-        </div>
-
-        {/* No results message */}
-        {filteredNews.length === 0 && (
+        {isLoading ? (
           <div className="text-center py-12">
-            <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No articles found</h3>
-            <p className="text-muted-foreground mb-4">
-              Try adjusting your search terms or filter criteria
-            </p>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("All");
-              }}
-              data-testid="button-clear-filters"
-            >
-              Clear Filters
-            </Button>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading news...</p>
           </div>
-        )}
+        ) : (
+          <>
+            {/* Featured Posts */}
+            {featuredPosts.length > 0 && (
+              <section className="mb-16">
+                <h2 className="text-2xl font-bold mb-8">Featured Stories</h2>
+                <div className="grid md:grid-cols-2 gap-8">
+                  {featuredPosts.map((post) => (
+                    <Card key={post.id} className="hover:shadow-lg transition-shadow">
+                      {post.coverImage && (
+                        <div className="aspect-video overflow-hidden rounded-t-lg">
+                          <img 
+                            src={post.coverImage} 
+                            alt={post.title}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      )}
+                      <CardHeader>
+                        <div className="flex justify-between items-start mb-2">
+                          <Badge variant="secondary" className="bg-primary/10 text-primary">
+                            Featured
+                          </Badge>
+                          <time className="text-sm text-muted-foreground">
+                            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Draft'}
+                          </time>
+                        </div>
+                        <CardTitle className="line-clamp-2">
+                          <Link href={`/news/${post.slug}`} className="hover:text-primary transition-colors">
+                            {post.title}
+                          </Link>
+                        </CardTitle>
+                        <CardDescription className="line-clamp-3">
+                          {post.excerpt || post.content.substring(0, 200) + '...'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button asChild variant="outline" className="w-full">
+                          <Link href={`/news/${post.slug}`}>Read Full Story</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
 
-        {/* Load More Button (if needed) */}
-        {filteredNews.length > 0 && (
-          <div className="text-center">
-            <Button 
-              variant="outline" 
-              size="lg"
-              onClick={() => console.log('Load more articles')}
-              data-testid="button-load-more"
-            >
-              Load More Articles
-            </Button>
-          </div>
+            {/* Regular Posts */}
+            {regularPosts.length > 0 && (
+              <section>
+                <h2 className="text-2xl font-bold mb-8">All News</h2>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {regularPosts.map((post) => (
+                    <Card key={post.id} className="hover:shadow-lg transition-shadow">
+                      {post.coverImage && (
+                        <div className="aspect-video overflow-hidden rounded-t-lg">
+                          <img 
+                            src={post.coverImage} 
+                            alt={post.title}
+                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          />
+                        </div>
+                      )}
+                      <CardHeader>
+                        <div className="flex justify-between items-start mb-2">
+                          <time className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString() : 'Draft'}
+                          </time>
+                        </div>
+                        <CardTitle className="line-clamp-2">
+                          <Link href={`/news/${post.slug}`} className="hover:text-primary transition-colors">
+                            {post.title}
+                          </Link>
+                        </CardTitle>
+                        <CardDescription className="line-clamp-3">
+                          {post.excerpt || post.content.substring(0, 150) + '...'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button asChild variant="outline" className="w-full">
+                          <Link href={`/news/${post.slug}`}>Read More</Link>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Empty State */}
+            {(!posts || posts.length === 0) && (
+              <div className="text-center py-16">
+                <div className="text-6xl mb-4">📰</div>
+                <h2 className="text-2xl font-semibold mb-4">No news available</h2>
+                <p className="text-muted-foreground mb-8">
+                  Check back soon for the latest updates and announcements.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

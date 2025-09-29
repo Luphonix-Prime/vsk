@@ -10,7 +10,8 @@ const navigationItems = [
   { name: "Gallery", path: "/gallery" },
   { name: "Publications", path: "/publications" },
   { name: "Important Days", path: "/important-days" },
-  { name: "Contact", path: "/contact" }
+  { name: "Contact", path: "/contact" },
+  { name: "Admin", path: "/admin" }
 ];
 
 export default function Header() {
