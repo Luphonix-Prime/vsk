@@ -30,11 +30,7 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center">
-              <img 
-                src="/123.jpg" 
-                alt="VSK Gujarat Logo" 
-                className="w-8 h-8 object-contain"
-              />
+              <span className="text-primary-foreground font-bold text-xl">V</span>
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-lg text-foreground">VSK Gujarat</span>
